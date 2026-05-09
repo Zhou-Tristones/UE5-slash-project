@@ -1,0 +1,36 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.7",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Slash",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"UMG"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "NexxNote",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product/a445ccab-a13f-458d-989a-63c7466ef7d8"
+		},
+		{
+			"Name": "BlockoutToolsPlugin",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/d337b97aca8947a893526964e179acfd"
+		}
+	]
+}
