@@ -22,10 +22,20 @@ AEnemy::AEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
+	GetMesh()->SetCollisionResponseToChannel(
+		ECollisionChannel::ECC_Visibility, 
+		ECollisionResponse::ECR_Block
+	);
+	GetMesh()->SetCollisionResponseToChannel(
+		ECollisionChannel::ECC_Camera,
+		ECollisionResponse::ECR_Ignore
+	);
 	GetMesh()->SetGenerateOverlapEvents(true);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(
+		ECollisionChannel::ECC_Camera,
+		ECollisionResponse::ECR_Ignore
+	);
 
 	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
 	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBar"));
@@ -40,32 +50,34 @@ AEnemy::AEnemy()
 
 }
 
+void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+}
+
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HealthBarWidget)
-		HealthBarWidget->SetVisibility(false);
+	if (HealthBarWidget) { HealthBarWidget->SetVisibility(false); }
 
 	EnemyController = Cast<AAIController>(GetController());
-	if (EnemyController && PatrolTarget)
-	{
-		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalActor(PatrolTarget);
-		MoveRequest.SetAcceptanceRadius(15.f);
-		FNavPathSharedPtr NavPath;
-		EnemyController->MoveTo(MoveRequest, &NavPath);
-		TArray<FNavPathPoint>& PathPoints = NavPath->GetPathPoints();
-		for (auto& Point : PathPoints)
-		{
-			const FVector& Location = Point.Location;
-			DrawDebugSphere(GetWorld(), Location, 12.f, 12, FColor::Green, true);
-		}
 
-	}
-
+	MoveToTarget(PatrolTarget);
 	
 }
+
+void AEnemy::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	CheckCombatTarget();
+	CheckPatrolTarget();
+	
+}
+
+/**************************************************************************************/
 
 void AEnemy::PlayHitReactMontage(const FName& SectionName)
 {
@@ -125,8 +137,78 @@ void AEnemy::Die()
 	SetLifeSpan(3.f);
 }
 
+/**************************************************************************************/
+
+void AEnemy::CheckCombatTarget()
+{
+	if (!InTargetRange(CombatTarget, CombatRadius))
+	{
+		CombatTarget = nullptr;
+
+		if (HealthBarWidget)
+			HealthBarWidget->SetVisibility(false);
+	}
+}
+
+void AEnemy::CheckPatrolTarget()
+{
+	if (InTargetRange(PatrolTarget, PatrolRadius))
+	{
+		PatrolTarget = ChoosePatrolTarget();
+		GetWorldTimerManager().SetTimer(
+			PatrolTimer,
+			this,
+			&AEnemy::PatrolTimerFinished,
+			PatrolDelayTime
+		);
+	}
+}
+
+void AEnemy::MoveToTarget(AActor* Target)
+{
+	if (!EnemyController || !Target) return;
+
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalActor(Target);
+	MoveRequest.SetAcceptanceRadius(15.f);
+	FNavPathSharedPtr NavPath;
+
+	EnemyController->MoveTo(MoveRequest, &NavPath);
+	TArray<FNavPathPoint>& PathPoints = NavPath->GetPathPoints();
+	for (auto& Point : PathPoints)
+	{
+		const FVector& Location = Point.Location;
+		DrawDebugSphere(GetWorld(), Location, 12.f, 12, FColor::Green, true);
+	}
+}
+
+AActor* AEnemy::ChoosePatrolTarget()
+{
+	TArray<AActor*> ValidTargets;
+	for (AActor* Target : PatrolTargets)
+	{
+		if (Target != PatrolTarget)
+		{
+			ValidTargets.AddUnique(Target);
+		}
+	}
+
+	const int32 NumPatrolTargets = ValidTargets.Num();
+	if (NumPatrolTargets > 0)
+	{
+		const int32 TargetIndex = FMath::RandRange(0, NumPatrolTargets - 1);
+		return ValidTargets[TargetIndex];
+	}
+
+	return nullptr;
+}
+
+/**************************************************************************************/
+
 bool AEnemy::InTargetRange(AActor* Target, double Radius)
 {
+	if (!Target) return false;
+
 	const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
 	DRAW_DEBUG_SPHERE_SingleFrame(GetActorLocation());
 	DRAW_DEBUG_SPHERE_SingleFrame(Target->GetActorLocation());
@@ -135,65 +217,10 @@ bool AEnemy::InTargetRange(AActor* Target, double Radius)
 
 void AEnemy::PatrolTimerFinished()
 {
-
+	MoveToTarget(PatrolTarget);
 }
 
-void AEnemy::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (CombatTarget)
-	{
-		if (!InTargetRange(CombatTarget, CombatRadius))
-		{
-			CombatTarget = nullptr;
-
-			if (HealthBarWidget)
-				HealthBarWidget->SetVisibility(false);
-		}
-	}
-
-	if (PatrolTarget && EnemyController)
-	{
-		if (InTargetRange(PatrolTarget, PatrolRadius))
-		{
-			TArray<AActor*> ValidTargets;
-			for (AActor* Target : PatrolTargets)
-			{
-				if (Target != PatrolTarget)
-				{
-					ValidTargets.AddUnique(Target);
-				}
-			}
-
-			if (ValidTargets.Num() > 0)
-			{
-				const int32 TargetIndex = FMath::RandRange(0, ValidTargets.Num() - 1);
-				PatrolTarget = ValidTargets[TargetIndex];
-			}
-
-			FAIMoveRequest MoveRequest;
-			MoveRequest.SetGoalActor(PatrolTarget);
-			MoveRequest.SetAcceptanceRadius(15.f);
-			FNavPathSharedPtr NavPath;
-			EnemyController->MoveTo(MoveRequest, &NavPath);
-			TArray<FNavPathPoint>& PathPoints = NavPath->GetPathPoints();
-			for (auto& Point : PathPoints)
-			{
-				const FVector& Location = Point.Location;
-				DrawDebugSphere(GetWorld(), Location, 12.f, 12, FColor::Green, true);
-			}
-
-		}
-	}
-
-}
-
-void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
+/**************************************************************************************/
 
 void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 {
@@ -262,7 +289,11 @@ void AEnemy::DirectionHitReact(const FVector& ImpactPoint)
 	//DRAW_DEBUG_ARROW(GetActorLocation(), GetActorLocation() + CrossProduct * 100.f, FColor::Blue);
 }
 
-float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float AEnemy::TakeDamage(
+	float DamageAmount,
+	FDamageEvent const& DamageEvent,
+	AController* EventInstigator,
+	AActor* DamageCauser)
 {
 	
 	if (Attributes && HealthBarWidget)

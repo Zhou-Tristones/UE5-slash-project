@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+
 #include "CharacterTypes.h"
+
 #include "SlashAnimInstance.generated.h"
 
 class ASlashCharacter;

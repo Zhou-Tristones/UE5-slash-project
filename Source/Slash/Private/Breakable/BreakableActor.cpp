@@ -1,8 +1,9 @@
 
 
 #include "Breakable/BreakableActor.h"
-#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Items/Treasure.h"
+
+#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Components/CapsuleComponent.h"
 
 ABreakableActor::ABreakableActor()

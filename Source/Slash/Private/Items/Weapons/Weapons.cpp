@@ -2,12 +2,15 @@
 
 #include "Items/Weapons/Weapons.h"
 #include "Characters/SlashCharacter.h"
-#include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetSystemLibrary.h"
+
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
-#include "Interfaces/HitInterface.h"
 #include "NiagaraComponent.h"
+
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
+
+#include "Interfaces/HitInterface.h"
 
 AWeapons::AWeapons()
 {

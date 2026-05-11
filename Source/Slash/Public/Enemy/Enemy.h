@@ -46,10 +46,20 @@ protected:
 	void Die();
 
 
+	/**
+	* Enemy State
+	*/
 	bool InTargetRange(AActor* Target, double Radius);
 
 	UPROPERTY(BlueprintReadOnly)
 	EDeathPose DeathPose = EDeathPose::EDP_Alive;
+
+	/**
+	* Enemy Movement
+	*/
+	void MoveToTarget(AActor* Target);
+	AActor* ChoosePatrolTarget();
+
 private:
 
 	/**
@@ -73,20 +83,25 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* DeathMontage;
 
+	/**
+	* Combat
+	*/
+
+	// Combat effects
 	UPROPERTY(EditAnywhere, Category = "Sounds")
 	USoundBase* HitSound;
 
 	UPROPERTY(EditAnywhere, Category = "VisualEffects")
 	UParticleSystem* HitParticles;
 
-	/**
-	* Combat Param
-	*/
+	// Combat params
 	UPROPERTY()
 	AActor* CombatTarget;
 
 	UPROPERTY(EditAnywhere)
 	double CombatRadius = 500.f;
+
+	void CheckCombatTarget();
 
 	/**
 	* Navigation
@@ -94,18 +109,23 @@ private:
 	UPROPERTY()
 	class AAIController* EnemyController;
 
-	// 当前的巡逻目标
+	// Current Patrol Target
 	UPROPERTY(EditInstanceOnly, Category = "AI Navigation")
 	AActor* PatrolTarget;
 
-	// 巡逻目标数组
+	// Patrol Target Array
 	UPROPERTY(EditInstanceOnly, Category = "AI Navigation")
 	TArray<AActor*> PatrolTargets;
 
 	UPROPERTY(EditAnywhere)
 	double PatrolRadius = 200.f;
 
-	FTimerHandle PartolTime;
+	UPROPERTY(EditAnywhere, Category = "AI Navigation | Time")
+	float PatrolDelayTime = 5.f;
+
+	void CheckPatrolTarget();
+
+	FTimerHandle PatrolTimer;
 	void PatrolTimerFinished();
 
 
