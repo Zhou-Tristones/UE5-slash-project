@@ -1,5 +1,4 @@
 
-
 #include "Characters/SlashCharacter.h"
 
 #include "GameFramework/SpringArmComponent.h"
@@ -74,16 +73,6 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction(FName("Attack"), EInputEvent::IE_Pressed, this, &ASlashCharacter::Attack);
 	PlayerInputComponent->BindAction(FName("Arm"), EInputEvent::IE_Pressed, this, &ASlashCharacter::ThreeKeyPressed);
 
-}
-
-void ASlashCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-	if (EquippedWeapon && EquippedWeapon->GetWeaponBox())
-	{
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-		EquippedWeapon->IgnoreActors.Empty();
-	}
-	
 }
 
 void ASlashCharacter::MoveForward(float Value)
@@ -221,7 +210,7 @@ bool ASlashCharacter::CanArm()
 		EquippedWeapon;
 }
 
-void ASlashCharacter::PlayEquipMontage(FName SectionName)
+void ASlashCharacter::PlayEquipMontage(const FName& SectionName)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && EquipMontage)
@@ -242,7 +231,6 @@ void ASlashCharacter::Arm()
 	if (EquippedWeapon)
 		EquippedWeapon->AttackMeshToSocket(GetMesh(), FName("RightHandSocket"));
 }
-
 
 /*********************************************************/
 

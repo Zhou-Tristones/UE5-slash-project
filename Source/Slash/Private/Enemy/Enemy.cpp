@@ -37,7 +37,6 @@ AEnemy::AEnemy()
 		ECollisionResponse::ECR_Ignore
 	);
 
-	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
 	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBar"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
 
@@ -49,12 +48,6 @@ AEnemy::AEnemy()
 	EnemySensing = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("Enemy Sensing"));
 	EnemySensing->SightRadius = 4000.f;
 	EnemySensing->SetPeripheralVisionAngle(45.f);
-
-}
-
-void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
 
@@ -89,17 +82,6 @@ void AEnemy::Tick(float DeltaTime)
 }
 
 /**************************************************************************************/
-
-void AEnemy::PlayHitReactMontage(const FName& SectionName)
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && HitReactMontage)
-	{
-		AnimInstance->Montage_Play(HitReactMontage);
-		AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
-	}
-	
-}
 
 void AEnemy::Die()
 {
@@ -204,14 +186,14 @@ void AEnemy::MoveToTarget(AActor* Target)
 	MoveRequest.SetGoalActor(Target);
 	MoveRequest.SetAcceptanceRadius(20.f);
 
-	FNavPathSharedPtr NavPath;
-	EnemyController->MoveTo(MoveRequest, &NavPath);
-	TArray<FNavPathPoint>& PathPoints = NavPath->GetPathPoints();
-	for (auto& Point : PathPoints)
-	{
-		const FVector& Location = Point.Location;
-		DrawDebugSphere(GetWorld(), Location, 12.f, 12, FColor::Green, false, 5.f);
-	}
+	//FNavPathSharedPtr NavPath;
+	EnemyController->MoveTo(MoveRequest);
+	//TArray<FNavPathPoint>& PathPoints = NavPath->GetPathPoints();
+	//for (auto& Point : PathPoints)
+	//{
+	//	const FVector& Location = Point.Location;
+	//	DrawDebugSphere(GetWorld(), Location, 12.f, 12, FColor::Green, false, 5.f);
+	//}
 }
 
 AActor* AEnemy::ChoosePatrolTarget()
@@ -312,34 +294,6 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 	}
 }
 
-void AEnemy::DirectionHitReact(const FVector& ImpactPoint)
-{
-	const FVector Forward = this->GetActorForwardVector();
-	const FVector ImpactLowered(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);
-	const FVector ToHit = (ImpactLowered - this->GetActorLocation()).GetSafeNormal();
-
-	const double CosTheta = FVector::DotProduct(Forward, ToHit);
-	double Theta = FMath::Acos(CosTheta);
-	Theta = FMath::RadiansToDegrees(Theta);
-
-	const FVector CrossProduct = FVector::CrossProduct(Forward, ToHit);
-	if (CrossProduct.Z < 0) { Theta *= -1.f; }
-
-	FName Section("FromBack");
-
-	if (Theta >= -45.f && Theta <= 45.f) { Section = FName("FromFront"); }
-	else if (Theta >= -135.f && Theta < -45.f) { Section = FName("FromLeft"); }
-	else if (Theta >= 45.f && Theta < 135.f) { Section = FName("FromRight"); }
-
-	PlayHitReactMontage(Section);
-
-	//if (GEngine)
-	//	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, FString::Printf(TEXT("Theta: %f"), Theta));
-
-	//DRAW_DEBUG_ARROW(GetActorLocation(), GetActorLocation() + Forward * 60.f, FColor::Red);
-	//DRAW_DEBUG_ARROW(GetActorLocation(), GetActorLocation() + ToHit * 60.f, FColor::Green);
-	//DRAW_DEBUG_ARROW(GetActorLocation(), GetActorLocation() + CrossProduct * 100.f, FColor::Blue);
-}
 
 float AEnemy::TakeDamage(
 	float DamageAmount,
