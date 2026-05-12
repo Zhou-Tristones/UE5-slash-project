@@ -2,6 +2,7 @@
 
 #include "Enemy/Enemy.h"
 #include "AIController.h"
+#include "Items/Weapons/Weapons.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -63,6 +64,14 @@ void AEnemy::BeginPlay()
 
 	if (EnemySensing)
 		EnemySensing->OnSeePawn.AddDynamic(this, &AEnemy::PawnSeen);
+
+	UWorld* World = GetWorld();
+	if (World && WeaponClass)
+	{
+		AWeapons* DefaultWeapon = World->SpawnActor<AWeapons>(WeaponClass);
+		DefaultWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+		EquippedWeapon = DefaultWeapon;
+	}
 	
 }
 
@@ -313,5 +322,13 @@ float AEnemy::TakeDamage(
 	MoveToTarget(CombatTarget);
 
 	return DamageAmount;
+}
+
+void AEnemy::Destroyed()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Destroy();
+	}
 }
 

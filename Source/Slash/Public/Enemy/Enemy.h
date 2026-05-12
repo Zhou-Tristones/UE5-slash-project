@@ -31,6 +31,8 @@ public:
 		AActor* DamageCauser
 	) override;
 
+	virtual void Destroyed() override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -77,6 +79,8 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UPawnSensingComponent* EnemySensing;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AWeapons> WeaponClass;
 
 	/**
 	* Combat
