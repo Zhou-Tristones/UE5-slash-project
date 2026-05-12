@@ -33,25 +33,21 @@ protected:
 	
 	virtual void Die();
 
-	/**
-	* 播放蒙太奇
-	*/
+	/** Play Montage */
 	virtual void PlayAttackMontage();
 	virtual void PlayHitReactMontage(const FName& SectionName);
 	void DirectionHitReact(const FVector& ImpactPoint);
+	void PlayHitSound(const FVector& ImpactPoint);
+	void SpawnHitParticles(const FVector& ImpactPoint);
+	virtual void HandleDamage(float DamageAmount);
 
 	virtual bool CanAttack();
+	bool IsAlive();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void AttackEnd();
 
 
-	// Combat effects
-	UPROPERTY(EditAnywhere, Category = "Sounds")
-	USoundBase* HitSound;
-
-	UPROPERTY(EditAnywhere, Category = "VisualEffects")
-	UParticleSystem* HitParticles;
 
 	/**
 	* Components
@@ -64,9 +60,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* Attributes;
 
-	/**
-	* 动画蒙太奇
-	*/
+	/** Animation Montages */
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* AttackMontage;
 
@@ -76,6 +70,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* DeathMontage;
 
-public:	
+private:
+	/** Combat effects */
+	UPROPERTY(EditAnywhere, Category = "Sounds")
+	USoundBase* HitSound;
+
+	UPROPERTY(EditAnywhere, Category = "VisualEffects")
+	UParticleSystem* HitParticles;
 
 };

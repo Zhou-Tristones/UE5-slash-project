@@ -36,25 +36,29 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	/**
-	* Play montage functions
-	*/
+	/** Play montage functions */
 	virtual void Die() override;
+	virtual void PlayAttackMontage() override;
+
+
+	/** Enemy Action */
+	virtual void Attack() override;
+	virtual bool CanAttack() override;
 
 
 	/**
 	* Enemy State
 	*/
-	bool InTargetRange(AActor* Target, double Radius);
-
 	UPROPERTY(BlueprintReadOnly)
 	EDeathPose DeathPose = EDeathPose::EDP_Alive;
 	
+	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
 
 	/**
 	* Enemy Movement
 	*/
+	bool InTargetRange(AActor* Target, double Radius);
 	void MoveToTarget(AActor* Target);
 	AActor* ChoosePatrolTarget();
 
@@ -67,12 +71,11 @@ protected:
 	UFUNCTION()
 	void PawnSeen(APawn* SeenPawn);
 
+	virtual void HandleDamage(float DamageAmount) override;
+
 private:
 
-	/**
-	* Components
-	*/
-
+	/** Components */
 	UPROPERTY(VisibleAnywhere)
 	UHealthBarComponent* HealthBarWidget;
 
@@ -82,12 +85,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AWeapons> WeaponClass;
 
-	/**
-	* Combat
-	*/
+	UPROPERTY()
+	class AAIController* EnemyController;
 
-
-	// Combat params
+	/** Combat */
 	UPROPERTY()
 	AActor* CombatTarget;
 
@@ -97,12 +98,18 @@ private:
 	UPROPERTY(EditAnywhere)
 	double AttackRadius = 150.f;
 
-	/**
-	* Navigation
-	*/
-	UPROPERTY()
-	class AAIController* EnemyController;
+	void StartAttackTimer();
+	void ClearAttackTimer();
 
+	FTimerHandle AttackTimer;
+	
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackMin = 0.5f;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackMax = 1.f;
+
+
+	/** Patrol */
 	// Current Patrol Target
 	UPROPERTY(EditInstanceOnly, Category = "AI Navigation")
 	AActor* PatrolTarget;
@@ -120,5 +127,29 @@ private:
 	FTimerHandle PatrolTimer;
 	void PatrolTimerFinished();
 
+	/** AI behavior */
+	void HideHealthBar();
+	void ShowHealthBar();
+	void LoseInterest();
+	void StartPatrolling();
+	void ChaseTarget();
+
+	bool IsOutsideCombatRadius();
+	bool IsOutsideAttackRadius();
+	bool IsInsideAttackRadius();
+
+	bool IsChasing();
+	bool IsAttacking();
+	bool IsDead();
+	bool IsEngaged();
+
+	void ClearPatrolTimer();
+
+	/** Movement Params */
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float PatrollingSpeed = 125.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ChasingSpeed = 300.f;
 
 };
