@@ -19,13 +19,17 @@ class SLASH_API ASlashCharacter : public ABaseCharacter
 
 public:
 	ASlashCharacter();
-	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	/** <AActor> */
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	/** </AActor> */
 
 protected:
+	/** <AActor> */
 	virtual void BeginPlay() override;
+	/** </AActor> */
 
+	/** Callbacks for input */
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Turn(float Value);
@@ -33,65 +37,58 @@ protected:
 	void EKeyPressed();
 	void ThreeKeyPressed();
 
-	/**
-	* 角色主要动作
-	*/
+	/** <BaseCharacter> */
 	virtual void Attack() override;
-
-	/**
-	* 播放蒙太奇
-	*/
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
+	/** </BaseCharacter> */
 
+	/** Combat Behavior */
+	void EquipWeapon(AWeapons* Weapon);
 	void PlayEquipMontage(const FName& SectionName);
 	bool CanDisarm();
 	bool CanArm();
-
-	UFUNCTION(BlueprintCallable)
-	void Disarm();
-
-	UFUNCTION(BlueprintCallable)
 	void Arm();
+	void DisArm();
+
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToBack();
+
+	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToHand();
 
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
 
-
 private:
-	// 角色状态
+	
+	/** Character State */
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;
 
-	/** 摄像机组件 */
+	/** Character Components */
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* ViewCamera;
 
-	/** 角色毛发组件 */
 	UPROPERTY(VisibleAnywhere, Category = "Hair")
 	UGroomComponent* Hair;
 
 	UPROPERTY(VisibleAnywhere, Category = "Hair")
 	UGroomComponent* Eyebrows;
 
-	/** 与角色重叠的物品 */
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
 
-	/**
-	* 动画蒙太奇
-	*/
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* EquipMontage;
 
 public:
-	// 设置与角色重叠的物品
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
-	// 获取角色状态
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 
 };
