@@ -38,22 +38,25 @@ protected:
 
 	/** Play montage functions */
 	virtual void Die() override;
-	virtual void PlayAttackMontage() override;
-
+	virtual int32 PlayDeathMontage() override;
 
 	/** Enemy Action */
 	virtual void Attack() override;
 	virtual bool CanAttack() override;
+	virtual void AttackEnd() override;
 
 
 	/**
 	* Enemy State
 	*/
 	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose = EDeathPose::EDP_Alive;
+	EDeathPose DeathPose;
 	
 	UPROPERTY(BlueprintReadOnly)
 	EEnemyState EnemyState = EEnemyState::EES_Patrolling;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float DeathLifeSpan = 8.f;
 
 	/**
 	* Enemy Movement

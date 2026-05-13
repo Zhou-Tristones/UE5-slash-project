@@ -41,7 +41,6 @@ protected:
 	/**
 	* 播放蒙太奇
 	*/
-	virtual void PlayAttackMontage() override;
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
 
